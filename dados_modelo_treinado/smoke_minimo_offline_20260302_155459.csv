@@ -1,0 +1,3 @@
+"data_teste","caso","esperado","tipo_predito","confianca","criticidade","metodo","status"
+"2026-03-02 15:54:59","Defeito com restrição",5,5,85,"ALTA","MINIMO_OFFLINE","OK"
+"2026-03-02 15:54:59","Falha total",6,6,90,"CRITICA","MINIMO_OFFLINE","OK"

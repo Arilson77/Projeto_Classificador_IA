@@ -1,0 +1,11 @@
+Nota,Tipo de Intervenção,Equipamento,Data Abertura,Centro
+1001,2,Bomba P-101,2026-02-10,SE-AT
+1002,5,Compressor C-22,2026-02-11,SE-AT
+1003,6,Trocador E-09,2026-02-12,SE-AT
+1004,1,Tanque TQ-07,2026-02-13,SE-OP
+1005,3,Válvula XV-330,2026-02-14,SE-OP
+1006,4,Linha de vapor LV-12,2026-02-15,SE-MN
+1007,2,Motor M-88,2026-02-16,SE-MN
+1008,5,Gerador G-05,2026-02-17,SE-EL
+1009,6,Bomba P-220,2026-02-18,SE-EL
+1010,3,Filtro F-14,2026-02-19,SE-PR

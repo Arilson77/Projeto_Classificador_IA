@@ -1,0 +1,136 @@
+📦 GUIA DE INSTALAÇÃO - randomForest e Dependências
+═══════════════════════════════════════════════════════════════════════════
+
+## PROBLEMA
+Erro: "there is no package called 'randomForest'"
+
+## SOLUÇÃO RÁPIDA (opção 1 - RECOMENDADA)
+
+Cole no console R:
+
+```r
+options(repos = c(CRAN = "https://cran.posit.co/"))
+install.packages(c("randomForest", "tm", "SnowballC"))
+```
+
+Então execute a aplicação novamente:
+```r
+shiny::runApp("CLASSIFICADOR_VERSAO14.2.R")
+```
+
+═══════════════════════════════════════════════════════════════════════════
+
+## SOLUÇÃO 2 - Se a primeira não funcionar
+
+Tente este script completo:
+
+```r
+# Configurar novo mirror
+options(repos = c(CRAN = "https://mirror.rcg.usm.my/web/packages/"))
+
+# Instalar pacotes críticos
+cat("⏳ Instalando randomForest...\n")
+install.packages("randomForest", dependencies = TRUE)
+
+cat("⏳ Instalando tm...\n")
+install.packages("tm", dependencies = TRUE)
+
+cat("⏳ Instalando SnowballC...\n")
+install.packages("SnowballC", dependencies = TRUE)
+
+# Verificar instalação
+library(randomForest)
+library(tm)
+library(SnowballC)
+cat("✅ Tudo instalado com sucesso!\n")
+```
+
+═══════════════════════════════════════════════════════════════════════════
+
+## SOLUÇÃO 3 - Instalação completa de todas as dependências
+
+Execute este arquivo no R:
+
+```r
+source("install_dependencies.R")
+```
+
+Ou para instalação rápida:
+
+```r
+source("QUICK_INSTALL.R")
+```
+
+═══════════════════════════════════════════════════════════════════════════
+
+## SOLUÇÃO 4 - Se nenhuma das anteriores funcionar
+
+Você pode estar offline ou com firewall. Tente:
+
+1. Verifique conectividade:
+   ```r
+   download.file("https://cran.posit.co/", "test.html")
+   ```
+
+2. Se funcionar, tente:
+   ```r
+   options(repos = c(CRAN = "https://cran.posit.co/"))
+   install.packages("randomForest")
+   ```
+
+3. Se ainda não funcionar, baixe o pacote manualmente de:
+   https://cran.r-project.org/web/packages/randomForest/
+
+═══════════════════════════════════════════════════════════════════════════
+
+## VERIFICAÇÃO FINAL
+
+Após instalar, verifique se funcionou:
+
+```r
+library(randomForest)
+library(tm)
+library(SnowballC)
+library(shiny)
+library(dplyr)
+
+cat("✅ Todos os pacotes carregados com sucesso!\n")
+
+# Agora execute a aplicação
+shiny::runApp("CLASSIFICADOR_VERSAO14.2.R")
+```
+
+═══════════════════════════════════════════════════════════════════════════
+
+## LISTA DE PACOTES OBRIGATÓRIOS
+
+Básicos:
+- shiny          ✅
+- dplyr          ✅  
+- DT             ✅
+
+Machine Learning:
+- randomForest   ✅ (CRÍTICO)
+- tm             ✅ (CRÍTICO)
+- SnowballC      ✅
+- e1071          (opcional)
+
+API:
+- httr           ✅
+- jsonlite       ✅
+
+UI:
+- shinydashboard ✅
+- shinyjs        (opcional)
+- plotly         (opcional)
+
+═══════════════════════════════════════════════════════════════════════════
+
+## PRÓXIMOS PASSOS
+
+1. Instale os pacotes usando a solução acima
+2. Reinicie o R (Ctrl+Shift+F10 em RStudio)
+3. Execute: shiny::runApp("CLASSIFICADOR_VERSAO14.2.R")
+4. A aplicação agora deve funcionar com suporte completo a ML
+
+═══════════════════════════════════════════════════════════════════════════

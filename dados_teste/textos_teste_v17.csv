@@ -1,0 +1,11 @@
+Nº da nota,Texto breve,Texto longo
+1001,Instalação de ponto de medição,Executar instalação e regulagem de novo ponto de medição na linha de descarga da bomba P-101.
+1002,Vazamento em selo mecânico,Equipamento opera com restrição devido a vazamento no selo mecânico do compressor C-22; requer intervenção para eliminar defeito.
+1003,Parada total do trocador,Trocador E-09 indisponível após falha crítica no feixe tubular; necessária intervenção emergencial.
+1004,Limpeza de área de tanque,Realizar limpeza e higienização da área do tanque TQ-07 com arrumação e preservação.
+1005,Inspeção programada de válvula,Executar manutenção preventiva e inspeção planejada da válvula XV-330 conforme cronograma.
+1006,Aproveitamento de parada curta,Com sistema disponível sem restrição, executar manutenção por oportunidade na linha de vapor LV-12.
+1007,Melhoria em painel de motor,Implementar melhoria e ajuste de lógica no painel de controle do motor M-88 com testes funcionais.
+1008,Anomalia de vibração,Gerador G-05 apresenta anomalia e degradação de desempenho; intervenção para eliminar defeito.
+1009,Painel inoperante,Gerador G-05 com painel inoperante e indisponibilidade do sistema; intervenção para eliminar falha.
+1010,Verificação periódica de filtro,Realizar verificação e manutenção preditiva periódica do filtro F-14.

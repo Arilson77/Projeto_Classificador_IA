@@ -1,0 +1,5 @@
+setwd("C:/Users/G8ZQ/OneDrive - PETROBRAS/Área de Trabalho/Arilson/Projeto_Classificador_IA")
+cat("\n🔍 Testando carregamento do CLASSIFICADOR_VERSAO14.2.R...\n\n")
+source("CLASSIFICADOR_VERSAO14.2.R")
+cat("\n✅ Sistema carregado com sucesso!\n\n")
+cat("📊 Próximo passo: shiny::runApp('CLASSIFICADOR_VERSAO14.2.R')\n\n")

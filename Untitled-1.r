@@ -1,0 +1,1 @@
+install.packages("C:/caminho/para/randomForest_x.y-z.zip", repos = NULL, type = "win.binary")
