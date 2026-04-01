@@ -4503,6 +4503,129 @@ ui <- dashboardPage(
               )
             )
           )
+        ),
+        
+        #-----------------------------------------------------------------------
+        # SEÇÃO: IMPORTAR PLANILHA DE TREINAMENTO
+        #-----------------------------------------------------------------------
+        fluidRow(
+          column(
+            width = 12,
+            box(
+              title = div(
+                icon("file-import", style = "margin-right: 10px; color: #17a2b8;"),
+                "Importar Planilha de Treinamento"
+              ),
+              status = "info",
+              solidHeader = TRUE,
+              width = 12,
+              collapsible = TRUE,
+              collapsed = FALSE,
+              
+              div(
+                style = "padding: 20px;",
+                
+                # Descrição
+                div(
+                  style = "background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); 
+                       padding: 20px; border-radius: 12px; margin-bottom: 20px; 
+                       border-left: 4px solid #17a2b8;",
+                  h5(style = "color: #0277bd; margin: 0 0 10px 0; font-weight: 700;",
+                     icon("info-circle"), " Importação em Lote de Dados de Treinamento"),
+                  p(style = "color: #555; margin: 0; font-size: 13px;",
+                    "Carregue uma planilha já rotulada para alimentar a base de treinamento do modelo ML. ",
+                    "A planilha deve conter pelo menos as colunas ", 
+                    tags$strong("texto_original"), " (texto da ordem) e ",
+                    tags$strong("tipo_validado"), " (classificação correta: 1 a 6)."),
+                  br(),
+                  p(style = "color: #888; margin: 0; font-size: 12px;",
+                    "Tipos válidos: 1=Corretiva, 2=Preventiva, 3=Preditiva, 4=Melhoria, 5=Segurança, 6=Outros")
+                ),
+                
+                fluidRow(
+                  column(
+                    width = 6,
+                    
+                    # Upload do arquivo
+                    fileInput(
+                      "arquivo_import_treino",
+                      label = div(
+                        style = "font-weight: 700;",
+                        icon("upload"), " Selecione a planilha (CSV ou Excel):"
+                      ),
+                      accept = c(".csv", ".xlsx", ".xls"),
+                      buttonLabel = "Escolher Arquivo",
+                      placeholder = "Nenhum arquivo selecionado",
+                      width = "100%"
+                    ),
+                    
+                    # Botão de importar
+                    div(
+                      style = "text-align: center; margin-top: 15px;",
+                      actionButton(
+                        "executar_import_treino",
+                        label = div(
+                          icon("database", style = "margin-right: 10px;"),
+                          "Importar para Base de Treinamento"
+                        ),
+                        class = "btn-info btn-lg",
+                        style = "padding: 12px 35px; border-radius: 25px; font-weight: 700;"
+                      )
+                    )
+                  ),
+                  
+                  column(
+                    width = 6,
+                    
+                    div(
+                      style = "background: #f8f9fa; padding: 20px; border-radius: 12px; 
+                       border-left: 4px solid #ffc107;",
+                      h5(style = "color: #856404; margin: 0 0 10px 0; font-weight: 700;",
+                         icon("lightbulb"), " Estrutura da Planilha"),
+                      tags$table(
+                        style = "width: 100%; font-size: 12px; border-collapse: collapse;",
+                        tags$thead(
+                          tags$tr(
+                            tags$th(style = "padding: 6px; border-bottom: 2px solid #dee2e6; color: #495057;", "Coluna"),
+                            tags$th(style = "padding: 6px; border-bottom: 2px solid #dee2e6; color: #495057;", "Obrigatória"),
+                            tags$th(style = "padding: 6px; border-bottom: 2px solid #dee2e6; color: #495057;", "Descrição")
+                          )
+                        ),
+                        tags$tbody(
+                          tags$tr(
+                            tags$td(style = "padding: 5px; color: #17a2b8; font-weight: 700;", "texto_original"),
+                            tags$td(style = "padding: 5px; color: #28a745;", "Sim"),
+                            tags$td(style = "padding: 5px; color: #666;", "Texto da ordem de manutenção")
+                          ),
+                          tags$tr(style = "background: #f8f9fa;",
+                            tags$td(style = "padding: 5px; color: #17a2b8; font-weight: 700;", "tipo_validado"),
+                            tags$td(style = "padding: 5px; color: #28a745;", "Sim"),
+                            tags$td(style = "padding: 5px; color: #666;", "Tipo correto (1 a 6)")
+                          ),
+                          tags$tr(
+                            tags$td(style = "padding: 5px; color: #6c757d;", "tipo_ia"),
+                            tags$td(style = "padding: 5px; color: #ffc107;", "Não"),
+                            tags$td(style = "padding: 5px; color: #666;", "Sugestão da IA (padrão = tipo_validado)")
+                          ),
+                          tags$tr(style = "background: #f8f9fa;",
+                            tags$td(style = "padding: 5px; color: #6c757d;", "confianca"),
+                            tags$td(style = "padding: 5px; color: #ffc107;", "Não"),
+                            tags$td(style = "padding: 5px; color: #666;", "Confiança (padrão = 90)")
+                          )
+                        )
+                      )
+                    )
+                  )
+                ),
+                
+                # Preview dos dados importados
+                uiOutput("preview_import_treino"),
+                
+                # Resultado da importação
+                uiOutput("resultado_import_treino")
+              )
+            )
+          )
         )
       ), # Fecha tabItem modelo_ml
       
@@ -9473,6 +9596,247 @@ server <- function(input, output, session)  {
       type = "warning",
       duration = 5
     )
+  })
+  
+  #===========================================================================
+  # IMPORTAR PLANILHA DE TREINAMENTO
+  #===========================================================================
+  
+  # Preview ao carregar arquivo
+  observeEvent(input$arquivo_import_treino, {
+    req(input$arquivo_import_treino)
+    
+    tryCatch({
+      ext <- tools::file_ext(input$arquivo_import_treino$name)
+      
+      if (ext %in% c("xlsx", "xls")) {
+        if (!requireNamespace("readxl", quietly = TRUE)) {
+          showNotification("❌ Pacote 'readxl' não instalado. Use CSV.", type = "error")
+          return()
+        }
+        dados_preview <- readxl::read_excel(input$arquivo_import_treino$datapath)
+      } else if (ext == "csv") {
+        dados_preview <- tryCatch(
+          read.csv2(input$arquivo_import_treino$datapath, stringsAsFactors = FALSE, fileEncoding = "UTF-8"),
+          error = function(e) read.csv(input$arquivo_import_treino$datapath, stringsAsFactors = FALSE, fileEncoding = "UTF-8")
+        )
+      } else {
+        showNotification("❌ Formato não suportado. Use CSV ou Excel.", type = "error")
+        return()
+      }
+      
+      # Normalizar nomes das colunas para minúsculas e sem espaços
+      names(dados_preview) <- tolower(trimws(gsub("[^a-zA-Z0-9_]", "_", names(dados_preview))))
+      
+      # Verificar colunas obrigatórias
+      tem_texto <- any(grepl("texto_original|texto", names(dados_preview)))
+      tem_tipo <- any(grepl("tipo_validado|tipo", names(dados_preview)))
+      
+      output$preview_import_treino <- renderUI({
+        div(
+          style = "margin-top: 20px; padding: 20px; background: #fff; border-radius: 12px; border: 1px solid #dee2e6;",
+          
+          h5(style = "color: #17a2b8; font-weight: 700; margin-bottom: 15px;",
+             icon("table"), sprintf(" Preview: %d linhas x %d colunas", nrow(dados_preview), ncol(dados_preview))),
+          
+          # Status das colunas
+          div(
+            style = "margin-bottom: 15px;",
+            if (tem_texto) {
+              tags$span(style = "color: #28a745; margin-right: 15px;", icon("check-circle"), " texto_original encontrada")
+            } else {
+              tags$span(style = "color: #dc3545; margin-right: 15px;", icon("times-circle"), " texto_original NÃO encontrada")
+            },
+            if (tem_tipo) {
+              tags$span(style = "color: #28a745;", icon("check-circle"), " tipo_validado encontrada")
+            } else {
+              tags$span(style = "color: #dc3545;", icon("times-circle"), " tipo_validado NÃO encontrada")
+            }
+          ),
+          
+          # Colunas detectadas
+          p(style = "color: #666; font-size: 12px;",
+            tags$strong("Colunas detectadas: "), paste(names(dados_preview), collapse = ", ")),
+          
+          # Tabela preview (primeiras 5 linhas)
+          div(
+            style = "overflow-x: auto; max-height: 250px;",
+            renderTable({
+              head(dados_preview, 5)
+            }, striped = TRUE, bordered = TRUE, hover = TRUE, width = "100%")
+          )
+        )
+      })
+      
+    }, error = function(e) {
+      showNotification(paste("❌ Erro ao ler arquivo:", e$message), type = "error")
+    })
+  })
+  
+  # Executar importação
+  observeEvent(input$executar_import_treino, {
+    req(input$arquivo_import_treino)
+    
+    tryCatch({
+      ext <- tools::file_ext(input$arquivo_import_treino$name)
+      
+      # Ler arquivo
+      if (ext %in% c("xlsx", "xls")) {
+        if (!requireNamespace("readxl", quietly = TRUE)) {
+          showNotification("❌ Pacote 'readxl' não instalado. Use CSV.", type = "error")
+          return()
+        }
+        dados_import <- readxl::read_excel(input$arquivo_import_treino$datapath)
+      } else if (ext == "csv") {
+        dados_import <- tryCatch(
+          read.csv2(input$arquivo_import_treino$datapath, stringsAsFactors = FALSE, fileEncoding = "UTF-8"),
+          error = function(e) read.csv(input$arquivo_import_treino$datapath, stringsAsFactors = FALSE, fileEncoding = "UTF-8")
+        )
+      } else {
+        showNotification("❌ Formato não suportado.", type = "error")
+        return()
+      }
+      
+      # Normalizar nomes das colunas
+      names(dados_import) <- tolower(trimws(gsub("[^a-zA-Z0-9_]", "_", names(dados_import))))
+      
+      # Mapear colunas flexíveis: tentar nomes exatos, senão buscar parciais
+      col_texto <- if ("texto_original" %in% names(dados_import)) "texto_original" else {
+        match_col <- grep("^texto", names(dados_import), value = TRUE)[1]
+        if (!is.na(match_col)) match_col else NULL
+      }
+      col_tipo <- if ("tipo_validado" %in% names(dados_import)) "tipo_validado" else {
+        match_col <- grep("^tipo", names(dados_import), value = TRUE)[1]
+        if (!is.na(match_col)) match_col else NULL
+      }
+      
+      if (is.null(col_texto) || is.null(col_tipo)) {
+        showNotification(
+          "❌ Colunas obrigatórias não encontradas. A planilha deve ter 'texto_original' e 'tipo_validado'.",
+          type = "error", duration = 8
+        )
+        return()
+      }
+      
+      # Extrair e validar dados
+      dados_import$texto_final <- as.character(dados_import[[col_texto]])
+      dados_import$tipo_final <- as.integer(dados_import[[col_tipo]])
+      
+      # Coluna opcional: tipo_ia
+      col_tipo_ia <- if ("tipo_ia" %in% names(dados_import)) "tipo_ia" else NULL
+      # Coluna opcional: confianca
+      col_confianca <- if ("confianca" %in% names(dados_import)) "confianca" else {
+        match_col <- grep("confianca|confiança", names(dados_import), value = TRUE)[1]
+        if (!is.na(match_col)) match_col else NULL
+      }
+      
+      # Filtrar registros válidos
+      validos <- !is.na(dados_import$tipo_final) & 
+                 dados_import$tipo_final >= 1 & 
+                 dados_import$tipo_final <= 6 &
+                 !is.na(dados_import$texto_final) & 
+                 nchar(trimws(dados_import$texto_final)) > 5
+      
+      dados_validos <- dados_import[validos, ]
+      n_descartados <- sum(!validos)
+      
+      if (nrow(dados_validos) == 0) {
+        showNotification("❌ Nenhum registro válido encontrado na planilha.", type = "error")
+        return()
+      }
+      
+      # Criar registros no formato do validacoes_modelo$dados
+      novos_registros <- data.frame(
+        id = paste0("import_", format(Sys.time(), "%Y%m%d%H%M%S"), "_", seq_len(nrow(dados_validos))),
+        texto_original = dados_validos$texto_final,
+        tipo_original = dados_validos$tipo_final,
+        tipo_ia = if (!is.null(col_tipo_ia)) as.integer(dados_validos[[col_tipo_ia]]) else dados_validos$tipo_final,
+        tipo_validado = dados_validos$tipo_final,
+        assunto_original = "",
+        assunto_validado = "",
+        confianca = if (!is.null(col_confianca)) as.numeric(dados_validos[[col_confianca]]) else 90,
+        feedback_qualidade = "boa",
+        timestamp = Sys.time(),
+        usuario = "importacao_planilha",
+        observacoes = paste0("Importado via planilha: ", input$arquivo_import_treino$name),
+        stringsAsFactors = FALSE
+      )
+      
+      # Garantir estrutura do dataframe existente
+      if (is.null(validacoes_modelo$dados) || !is.data.frame(validacoes_modelo$dados)) {
+        validacoes_modelo$dados <- data.frame(
+          id = character(0), texto_original = character(0),
+          tipo_original = integer(0), tipo_ia = integer(0), tipo_validado = integer(0),
+          assunto_original = character(0), assunto_validado = character(0),
+          confianca = numeric(0), feedback_qualidade = character(0),
+          timestamp = as.POSIXct(character(0)), usuario = character(0),
+          observacoes = character(0), stringsAsFactors = FALSE
+        )
+      }
+      
+      # Registros antes da importação
+      n_antes <- nrow(validacoes_modelo$dados)
+      
+      # Adicionar novos registros (com deduplicação por id)
+      validacoes_modelo$dados <- dplyr::bind_rows(validacoes_modelo$dados, novos_registros) %>%
+        dplyr::distinct(id, .keep_all = TRUE)
+      
+      n_depois <- nrow(validacoes_modelo$dados)
+      n_importados <- n_depois - n_antes
+      
+      # Salvar em disco
+      salvar_dados_modelo()
+      
+      cat(sprintf("✅ Importação concluída: %d registros importados de '%s'\n", 
+                  n_importados, input$arquivo_import_treino$name))
+      
+      # Feedback visual
+      output$resultado_import_treino <- renderUI({
+        div(
+          style = "background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%); 
+               padding: 25px; border-radius: 12px; border-left: 6px solid #28a745; margin-top: 20px;",
+          h4(style = "color: #155724; margin: 0 0 15px 0;",
+             icon("check-circle"), " Importação Concluída!"),
+          fluidRow(
+            column(4,
+              div(style = "text-align: center; padding: 10px; background: white; border-radius: 8px;",
+                h3(style = "color: #28a745; margin: 0;", n_importados),
+                p(style = "color: #666; margin: 0; font-size: 12px;", "Registros importados")
+              )
+            ),
+            column(4,
+              div(style = "text-align: center; padding: 10px; background: white; border-radius: 8px;",
+                h3(style = "color: #ffc107; margin: 0;", n_descartados),
+                p(style = "color: #666; margin: 0; font-size: 12px;", "Registros descartados")
+              )
+            ),
+            column(4,
+              div(style = "text-align: center; padding: 10px; background: white; border-radius: 8px;",
+                h3(style = "color: #17a2b8; margin: 0;", n_depois),
+                p(style = "color: #666; margin: 0; font-size: 12px;", "Total na base")
+              )
+            )
+          ),
+          if (n_depois >= 10) {
+            div(
+              style = "margin-top: 15px; text-align: center;",
+              p(style = "color: #155724; font-size: 13px;",
+                icon("brain"), " Você já tem dados suficientes para treinar o modelo! ",
+                "Clique em 'Treinar Modelo' acima.")
+            )
+          }
+        )
+      })
+      
+      showNotification(
+        sprintf("✅ %d registros importados com sucesso!", n_importados),
+        type = "message", duration = 5
+      )
+      
+    }, error = function(e) {
+      showNotification(paste("❌ Erro na importação:", e$message), type = "error", duration = 8)
+      cat("❌ Erro na importação de planilha:", e$message, "\n")
+    })
   })
   
   #===========================================================================
